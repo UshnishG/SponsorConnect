@@ -22,10 +22,13 @@ const inputSchema = z.object({
   signOff: z.string().optional(),
   secondaryCtaLabel: z.string().optional(),
   secondaryCtaUrl: z.string().url().optional().or(z.literal("")),
+  ctaButtons: z.array(z.object({ label: z.string(), url: z.string(), style: z.enum(['filled', 'outline']).optional() })).optional(),
+  socialLinks: z.array(z.object({ platform: z.string(), url: z.string() })).optional(),
   logoUrls: z.array(z.string().url()).max(6).optional(),
   headerBg: z.string().max(200).optional(),
   headerImageUrl: z.string().url().optional().or(z.literal("")),
   footerImageUrl: z.string().url().optional().or(z.literal("")),
+  showAicssycLogo: z.boolean().optional(),
 });
 
 
@@ -89,10 +92,13 @@ export const sendOutreachEmail = createServerFn({ method: "POST" })
         signOff: personalizedSignOff,
         secondaryCtaLabel: data.secondaryCtaLabel,
         secondaryCtaUrl: data.secondaryCtaUrl || undefined,
+        ctaButtons: data.ctaButtons,
+        socialLinks: data.socialLinks,
         logoUrls: data.logoUrls,
         headerBg: data.headerBg,
         headerImageUrl: data.headerImageUrl || undefined,
         footerImageUrl: data.footerImageUrl || undefined,
+        showAicssycLogo: data.showAicssycLogo,
       });
 
 

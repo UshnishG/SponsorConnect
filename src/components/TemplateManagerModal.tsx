@@ -3,7 +3,67 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { upsertEmailTemplate, deleteEmailTemplate, type EmailTemplate } from "@/lib/templates.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { RichMarkdownEditor } from "./RichMarkdownEditor";
+
+function ImageDropzone({ label, helper, value, onChange, onClear }: any) {
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (!file || !file.type.startsWith("image/")) {
+      toast.error("Please drop a valid image file.");
+      return;
+    }
+    
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      
+      const { error } = await supabase.storage.from("assets").upload(fileName, file);
+      if (error) throw new Error(error.message);
+
+      const { data } = supabase.storage.from("assets").getPublicUrl(fileName);
+      onChange(data.publicUrl);
+    } catch (err: any) {
+      toast.error(err?.message || "Upload failed. Ensure 'assets' bucket exists.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 w-full">
+      <label className="mb-1 block text-xs font-semibold text-slate-700">
+        {label} {helper && <span className="font-normal text-slate-400">({helper})</span>}
+      </label>
+      {value ? (
+        <div className="relative border-2 border-slate-300 rounded overflow-hidden flex items-center justify-center bg-slate-100 p-2 group" style={{ minHeight: "80px" }}>
+          <img src={value} alt="" className="max-h-24 max-w-full object-contain" />
+          <button 
+            type="button"
+            onClick={onClear}
+            className="absolute top-1 right-1 bg-red-500 text-white rounded px-2 py-1 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity shadow"
+          >✕</button>
+        </div>
+      ) : (
+        <div 
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed p-4 flex items-center justify-center text-center text-xs transition-colors rounded cursor-pointer ${dragging ? "border-amber-500 bg-amber-50 text-amber-700" : "border-slate-300 bg-white text-slate-500"}`}
+          style={{ minHeight: "80px" }}
+        >
+          {uploading ? "Uploading..." : "Drag & Drop Image"}
+        </div>
+      )}
+    </div>
+  );
+}
 
 type Props = {
   open: boolean;
@@ -251,103 +311,6 @@ export function TemplateManagerModal({ open, onClose, templates }: Props) {
                   onChange={(e) => setDraft({ ...draft, event_dates: e.target.value })}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none"
                 />
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold text-slate-700">Header logos</div>
-                  <div className="text-[11px] text-slate-500">
-                    Leave empty to use the default AICSSYC · IEEE CS · SRM logos. Add your own image URLs to override.
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setDraft({ ...draft, logo_urls: [...draft.logo_urls, ""] })}
-                  disabled={draft.logo_urls.length >= 6}
-                  className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
-                >
-                  + Add logo
-                </button>
-              </div>
-              {draft.logo_urls.length === 0 && (
-                <div className="rounded border border-dashed border-slate-300 bg-white px-3 py-2 text-[11px] text-slate-400">
-                  Using default logos.
-                </div>
-              )}
-              <div className="space-y-2">
-                {draft.logo_urls.map((url, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="w-5 text-xs text-slate-400">{i + 1}.</span>
-                    <input
-                      value={url}
-                      onChange={(e) => {
-                        const next = [...draft.logo_urls];
-                        next[i] = e.target.value;
-                        setDraft({ ...draft, logo_urls: next });
-                      }}
-                      placeholder="https://…/logo.png"
-                      className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                    />
-                    {/^https?:\/\//i.test(url) && (
-                      <img src={url} alt="" className="h-6 w-auto max-w-[60px] rounded bg-slate-800 object-contain p-0.5" />
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setDraft({ ...draft, logo_urls: draft.logo_urls.filter((_, j) => j !== i) })}
-                      className="rounded p-1 text-slate-400 hover:bg-white hover:text-rose-600"
-                      aria-label="Remove"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3">
-                <label className="mb-1 block text-xs font-semibold text-slate-700">
-                  Header background <span className="font-normal text-slate-400">(CSS color or gradient — leave empty for default)</span>
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={draft.header_bg}
-                    onChange={(e) => setDraft({ ...draft, header_bg: e.target.value })}
-                    placeholder="#0b1512  or  linear-gradient(135deg,#000,#065f46)"
-                    className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                  />
-                  <div
-                    className="h-7 w-16 rounded border border-slate-300"
-                    style={{
-                      background:
-                        draft.header_bg.trim() ||
-                        "linear-gradient(135deg,#000000 0%,#062c22 40%,#065f46 100%)",
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
-                    Header banner image URL <span className="font-normal text-slate-400">(replaces logo row)</span>
-                  </label>
-                  <input
-                    value={draft.header_image_url}
-                    onChange={(e) => setDraft({ ...draft, header_image_url: e.target.value })}
-                    placeholder="https://…/header.png"
-                    className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold text-slate-700">
-                    Footer banner image URL <span className="font-normal text-slate-400">(optional)</span>
-                  </label>
-                  <input
-                    value={draft.footer_image_url}
-                    onChange={(e) => setDraft({ ...draft, footer_image_url: e.target.value })}
-                    placeholder="https://…/footer.png"
-                    className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
               </div>
             </div>
 

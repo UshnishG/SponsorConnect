@@ -49,14 +49,14 @@ function AdminPage() {
 
   if (me && me.role !== "admin") {
     return (
-      <div className="min-h-screen" style={{ background: "oklch(0.1 0.025 255)" }}>
+      <div className="min-h-screen">
         <AppHeader me={me} />
         <div className="lg:pl-[220px] pt-14 lg:pt-0 flex items-center justify-center min-h-screen">
-          <div className="text-center px-6">
+          <div className="text-center px-6 sc-card-heavy">
             <div className="text-5xl mb-4">🔒</div>
-            <h1 className="text-2xl font-bold mb-2" style={{ color: "oklch(0.92 0.005 255)" }}>Access denied</h1>
-            <p className="text-sm mb-5" style={{ color: "oklch(0.5 0.02 255)" }}>You need admin access to view this page.</p>
-            <Link to="/" className="btn-primary text-sm inline-flex">← Back to composer</Link>
+            <h1 className="font-display text-3xl font-bold mb-2">ACCESS DENIED</h1>
+            <p className="font-mono text-sm mb-5 text-muted-foreground">You need admin access to view this page.</p>
+            <Link to="/" className="btn-stamp inline-flex">← Back to composer</Link>
           </div>
         </div>
       </div>
@@ -70,143 +70,130 @@ function AdminPage() {
   });
 
   return (
-    <div className="min-h-screen" style={{ background: "oklch(0.1 0.025 255)" }}>
+    <div className="min-h-screen">
       <AppHeader me={me ?? null} />
 
-      <div className="lg:pl-[220px] pt-14 lg:pt-0">
+      <div className="lg:pl-[220px] pt-14 lg:pt-0" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         {/* Top bar */}
         <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-3"
-          style={{ borderBottom: "1px solid oklch(0.22 0.04 255)" }}>
+          style={{ borderBottom: "3px solid var(--ink)", background: "var(--paper)" }}>
           <div>
-            <h1 className="font-bold text-lg" style={{ color: "oklch(0.92 0.005 255)" }}>User Management</h1>
-            <p className="text-xs mt-0.5" style={{ color: "oklch(0.45 0.02 255)" }}>
+            <h1 className="font-brutalist text-2xl tracking-widest">USER MANAGEMENT</h1>
+            <p className="font-mono text-xs mt-0.5 text-muted-foreground">
               {users?.length ?? 0} member{(users?.length ?? 0) !== 1 ? "s" : ""} registered
             </p>
           </div>
           <div className="relative">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: "oklch(0.45 0.02 255)" }}>
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-            </svg>
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, role…"
-              className="sc-input pl-8"
+              placeholder="Search users..."
+              className="sc-input"
               style={{ width: "260px" }}
             />
           </div>
         </div>
 
-        <div className="px-6 py-6">
+        <div className="p-6 flex-1 bg-[var(--cream)]">
           {isLoading && (
-            <div className="text-sm text-center py-10" style={{ color: "oklch(0.45 0.02 255)" }}>
+            <div className="font-mono text-sm text-center py-10">
               Loading users…
             </div>
           )}
+          
           {error && (
-            <div className="text-sm py-4 px-4 rounded-xl" style={{ background: "oklch(0.35 0.1 25 / 20%)", color: "oklch(0.72 0.18 25)", border: "1px solid oklch(0.5 0.16 25 / 30%)" }}>
+            <div className="sc-card-heavy font-mono text-sm" style={{ background: "#f5ddd8", color: "var(--rust)" }}>
               {(error as Error).message}
             </div>
           )}
 
           {!isLoading && filtered.length > 0 && (
-            <div className="sc-card overflow-hidden !p-0">
+            <div className="sc-card !p-0 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="sc-table">
                   <thead>
-                    <tr style={{ borderBottom: "1px solid oklch(0.22 0.04 255)" }}>
+                    <tr>
                       {["User", "Role", "Status", "Delivered", "Failed", "Total", "Last login", "Joined"].map((h) => (
-                        <th key={h}
-                          className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider"
-                          style={{ color: "oklch(0.4 0.02 255)", background: "oklch(0.13 0.025 255)" }}>
-                          {h}
-                        </th>
+                        <th key={h}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map((u, i) => (
-                      <tr
-                        key={u.id}
-                        style={{ borderBottom: i < filtered.length - 1 ? "1px solid oklch(0.19 0.035 255)" : "none" }}
-                        onMouseEnter={(el) => (el.currentTarget.style.background = "oklch(0.15 0.03 255)")}
-                        onMouseLeave={(el) => (el.currentTarget.style.background = "transparent")}
-                      >
+                    {filtered.map((u) => (
+                      <tr key={u.id}>
                         {/* User */}
-                        <td className="px-4 py-3">
+                        <td>
                           <div className="flex items-center gap-3">
                             {u.avatar_url ? (
-                              <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+                              <img src={u.avatar_url} alt="" className="h-8 w-8 object-cover shrink-0" style={{ border: "2px solid var(--ink)" }} />
                             ) : (
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white shrink-0"
-                                style={{ background: "linear-gradient(135deg, oklch(0.62 0.24 280), oklch(0.65 0.22 260))" }}>
+                              <div className="flex h-8 w-8 items-center justify-center text-xs font-bold shrink-0"
+                                style={{ background: "var(--rust)", color: "var(--cream)", border: "2px solid var(--ink)" }}>
                                 {(u.name || u.email).charAt(0).toUpperCase()}
                               </div>
                             )}
                             <div>
-                              <div className="font-medium text-sm" style={{ color: "oklch(0.88 0.005 255)" }}>
+                              <div className="font-bold text-sm">
                                 {u.name || "—"}
                                 {u.id === me?.id && (
-                                  <span className="ml-1.5 text-[10px] font-normal" style={{ color: "oklch(0.45 0.02 255)" }}>(you)</span>
+                                  <span className="ml-1.5 font-mono text-[10px]">(you)</span>
                                 )}
                               </div>
-                              <div className="text-xs" style={{ color: "oklch(0.45 0.02 255)" }}>{u.email}</div>
+                              <div className="font-mono text-xs text-muted-foreground">{u.email}</div>
                             </div>
                           </div>
                         </td>
 
                         {/* Role */}
-                        <td className="px-4 py-3">
+                        <td>
                           <select
                             value={u.role}
                             disabled={u.id === me?.id || roleMut.isPending}
                             onChange={(e) => roleMut.mutate({ userId: u.id, role: e.target.value as AdminUser["role"] })}
                             className="sc-input py-1 px-2 text-xs w-auto"
-                            style={{ width: "auto" }}
                           >
                             {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                           </select>
                         </td>
 
                         {/* Status */}
-                        <td className="px-4 py-3">
+                        <td>
                           <button
                             disabled={u.id === me?.id || activeMut.isPending}
                             onClick={() => activeMut.mutate({ userId: u.id, isActive: !u.is_active })}
-                            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                              u.is_active
-                                ? "badge-success"
-                                : "badge-error"
-                            }`}
+                            className={u.is_active ? "badge-success" : "badge-neutral"}
+                            style={{ cursor: u.id === me?.id ? "not-allowed" : "pointer" }}
                           >
-                            {u.is_active ? "● Active" : "○ Disabled"}
+                            {u.is_active ? "ACTIVE" : "DISABLED"}
                           </button>
                         </td>
 
                         {/* Delivered */}
-                        <td className="px-4 py-3">
+                        <td>
                           <span className="badge-success">{u.delivered_count}</span>
                         </td>
 
                         {/* Failed */}
-                        <td className="px-4 py-3">
-                          <span className={u.failed_count > 0 ? "badge-error" : "text-xs"} style={u.failed_count === 0 ? { color: "oklch(0.4 0.02 255)" } : {}}>
-                            {u.failed_count}
-                          </span>
+                        <td>
+                          {u.failed_count > 0 ? (
+                            <span className="badge-error">{u.failed_count}</span>
+                          ) : (
+                            <span className="font-mono text-xs">0</span>
+                          )}
                         </td>
 
                         {/* Total */}
-                        <td className="px-4 py-3 text-sm font-semibold" style={{ color: "oklch(0.75 0.01 255)" }}>
+                        <td className="font-brutalist text-lg">
                           {u.total_sent}
                         </td>
 
                         {/* Last login */}
-                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: "oklch(0.45 0.02 255)" }}>
+                        <td className="font-mono text-xs whitespace-nowrap">
                           {u.last_login ? new Date(u.last_login).toLocaleDateString() : "—"}
                         </td>
 
                         {/* Joined */}
-                        <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: "oklch(0.4 0.02 255)" }}>
+                        <td className="font-mono text-xs whitespace-nowrap">
                           {new Date(u.created_at).toLocaleDateString()}
                         </td>
                       </tr>
@@ -218,9 +205,9 @@ function AdminPage() {
           )}
 
           {!isLoading && filtered.length === 0 && !error && (
-            <div className="text-center py-16">
+            <div className="text-center py-16 sc-card">
               <div className="text-4xl mb-3">👥</div>
-              <div className="text-sm" style={{ color: "oklch(0.45 0.02 255)" }}>No users match your search.</div>
+              <div className="font-mono text-sm">No users match your search.</div>
             </div>
           )}
         </div>

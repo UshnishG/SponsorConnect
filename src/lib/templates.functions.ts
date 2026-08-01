@@ -14,6 +14,8 @@ export type EmailTemplate = {
   sign_off: string | null;
   secondary_cta_label: string | null;
   secondary_cta_url: string | null;
+  cta_buttons: Array<{label: string; url: string; style?: 'filled' | 'outline'}> | null;
+  social_links: Array<{platform: string; url: string}> | null;
   logo_urls: string[];
   header_bg: string | null;
   header_image_url: string | null;
@@ -39,6 +41,8 @@ const upsertSchema = z.object({
   sign_off: z.string().max(2000).optional().nullable(),
   secondary_cta_label: z.string().max(60).optional().nullable(),
   secondary_cta_url: z.string().url().optional().nullable().or(z.literal("")),
+  cta_buttons: z.array(z.object({ label: z.string(), url: z.string(), style: z.enum(['filled', 'outline']).optional() })).optional().nullable(),
+  social_links: z.array(z.object({ platform: z.string(), url: z.string() })).optional().nullable(),
   logo_urls: z.array(z.string().url()).max(6).optional(),
   header_bg: z.string().max(200).optional().nullable(),
   header_image_url: z.string().url().optional().nullable().or(z.literal("")),
@@ -55,7 +59,7 @@ export const listEmailTemplates = createServerFn({ method: "GET" })
       .select("*")
       .order("label", { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []) as EmailTemplate[];
+    return (data ?? []) as unknown as EmailTemplate[];
   });
 
 async function requireAdmin(context: { supabase: any; userId: string }) {
@@ -69,7 +73,7 @@ async function requireAdmin(context: { supabase: any; userId: string }) {
 
 export const upsertEmailTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => upsertSchema.parse(d))
+  .validator((d: unknown) => upsertSchema.parse(d))
   .handler(async ({ data, context }): Promise<EmailTemplate> => {
     await requireAdmin(context);
     const payload = {
@@ -83,6 +87,8 @@ export const upsertEmailTemplate = createServerFn({ method: "POST" })
       sign_off: data.sign_off ?? null,
       secondary_cta_label: data.secondary_cta_label ?? null,
       secondary_cta_url: data.secondary_cta_url || null,
+      cta_buttons: data.cta_buttons ?? null,
+      social_links: data.social_links ?? null,
       logo_urls: data.logo_urls ?? [],
       header_bg: data.header_bg ?? null,
       header_image_url: data.header_image_url || null,
@@ -98,7 +104,7 @@ export const upsertEmailTemplate = createServerFn({ method: "POST" })
         .select("*")
         .single();
       if (error) throw new Error(error.message);
-      return row as EmailTemplate;
+      return row as unknown as EmailTemplate;
     }
     const { data: row, error } = await context.supabase
       .from("email_templates")
@@ -106,12 +112,12 @@ export const upsertEmailTemplate = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error(error.message);
-    return row as EmailTemplate;
+    return row as unknown as EmailTemplate;
   });
 
 export const deleteEmailTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }): Promise<{ ok: true }> => {
     await requireAdmin(context);
     const { error } = await context.supabase.from("email_templates").delete().eq("id", data.id);

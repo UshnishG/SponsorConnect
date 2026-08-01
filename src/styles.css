@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -45,301 +45,510 @@
   --color-chart-5: var(--chart-5);
 }
 
+/* ─────────────────────────────────────────
+   RAW DESIGN TOKENS
+   ───────────────────────────────────────── */
 :root {
-  --radius: 0.75rem;
-  /* Light mode (fallback) */
-  --background: oklch(0.97 0.005 240);
-  --foreground: oklch(0.15 0.03 255);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.03 255);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.03 255);
-  --primary: oklch(0.55 0.22 275);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.94 0.01 255);
-  --secondary-foreground: oklch(0.25 0.05 255);
-  --muted: oklch(0.94 0.01 255);
-  --muted-foreground: oklch(0.55 0.03 255);
-  --accent: oklch(0.94 0.01 255);
-  --accent-foreground: oklch(0.25 0.05 255);
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.88 0.01 255);
-  --input: oklch(0.88 0.01 255);
-  --ring: oklch(0.55 0.22 275);
-  --chart-1: oklch(0.72 0.19 275);
-  --chart-2: oklch(0.65 0.15 190);
-  --chart-3: oklch(0.78 0.18 85);
-  --chart-4: oklch(0.68 0.2 320);
-  --chart-5: oklch(0.72 0.18 35);
-  --sidebar: oklch(0.15 0.03 255);
-  --sidebar-foreground: oklch(0.9 0.01 255);
-  --sidebar-primary: oklch(0.72 0.19 275);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.22 0.04 255);
-  --sidebar-accent-foreground: oklch(0.9 0.01 255);
-  --sidebar-border: oklch(0.25 0.04 255);
-  --sidebar-ring: oklch(0.55 0.22 275);
+  --radius: 0px; /* No rounding — brutalist */
+
+  --ink:         #0e0d0b;
+  --paper:       #f5f0e8;
+  --paper-dark:  #e8e0cc;
+  --concrete:    #d0c8b4;
+  --rust:        #c0392b;
+  --amber:       #e67e22;
+  --amber-dark:  #d35400;
+  --green:       #27ae60;
+  --steel:       #2c3e50;
+  --steel-light: #34495e;
+  --gold:        #f39c12;
+  --gold-dark:   #d68910;
+  --cream:       #fdf8ef;
+
+  /* Tailwind-mapped */
+  --background:         var(--cream);
+  --foreground:         var(--ink);
+  --card:               var(--paper);
+  --card-foreground:    var(--ink);
+  --popover:            var(--paper);
+  --popover-foreground: var(--ink);
+  --primary:            var(--rust);
+  --primary-foreground: #fff;
+  --secondary:          var(--paper-dark);
+  --secondary-foreground: var(--ink);
+  --muted:              var(--paper-dark);
+  --muted-foreground:   #6b6050;
+  --accent:             var(--amber);
+  --accent-foreground:  var(--ink);
+  --destructive:        var(--rust);
+  --destructive-foreground: #fff;
+  --border:             var(--ink);
+  --input:              var(--paper);
+  --ring:               var(--rust);
+  --chart-1:            var(--rust);
+  --chart-2:            var(--amber);
+  --chart-3:            var(--green);
+  --chart-4:            var(--steel);
+  --chart-5:            var(--gold);
+  --sidebar:            var(--ink);
+  --sidebar-foreground: var(--cream);
+  --sidebar-primary:    var(--gold);
+  --sidebar-primary-foreground: var(--ink);
+  --sidebar-accent:     #1a1814;
+  --sidebar-accent-foreground: var(--cream);
+  --sidebar-border:     #2a2520;
+  --sidebar-ring:       var(--gold);
 }
 
-/* Force dark mode always for this app */
-html {
-  color-scheme: dark;
-  --background: oklch(0.1 0.025 255);
-  --foreground: oklch(0.95 0.005 255);
-  --card: oklch(0.14 0.03 255);
-  --card-foreground: oklch(0.95 0.005 255);
-  --popover: oklch(0.14 0.03 255);
-  --popover-foreground: oklch(0.95 0.005 255);
-  --primary: oklch(0.68 0.22 275);
-  --primary-foreground: oklch(0.1 0.025 255);
-  --secondary: oklch(0.2 0.04 255);
-  --secondary-foreground: oklch(0.9 0.005 255);
-  --muted: oklch(0.18 0.035 255);
-  --muted-foreground: oklch(0.6 0.02 255);
-  --accent: oklch(0.2 0.04 255);
-  --accent-foreground: oklch(0.9 0.005 255);
-  --destructive: oklch(0.65 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0.04 255 / 60%);
-  --input: oklch(0.2 0.04 255);
-  --ring: oklch(0.68 0.22 275);
-  --chart-1: oklch(0.72 0.2 275);
-  --chart-2: oklch(0.65 0.18 190);
-  --chart-3: oklch(0.78 0.2 85);
-  --chart-4: oklch(0.68 0.22 320);
-  --chart-5: oklch(0.72 0.2 35);
-  --sidebar: oklch(0.11 0.025 255);
-  --sidebar-foreground: oklch(0.92 0.005 255);
-  --sidebar-primary: oklch(0.68 0.22 275);
-  --sidebar-primary-foreground: oklch(0.1 0.025 255);
-  --sidebar-accent: oklch(0.17 0.035 255);
-  --sidebar-accent-foreground: oklch(0.92 0.005 255);
-  --sidebar-border: oklch(0.22 0.04 255);
-  --sidebar-ring: oklch(0.68 0.22 275);
-}
-
+/* ─────────────────────────────────────────
+   BASE
+   ───────────────────────────────────────── */
 @layer base {
   * {
-    border-color: var(--color-border);
     box-sizing: border-box;
+    border-color: var(--ink);
   }
 
-  body {
-    font-family: "Inter", system-ui, sans-serif;
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+  html, body {
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    background-color: var(--cream);
+    color: var(--ink);
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* ======= PREMIUM UTILITY CLASSES ======= */
-
-/* Glass morphism card */
-.glass-card {
-  background: oklch(0.16 0.03 255 / 70%);
-  backdrop-filter: blur(12px);
-  border: 1px solid oklch(0.3 0.05 275 / 30%);
-  border-radius: var(--radius);
+/* ─────────────────────────────────────────
+   NOISE / GRAIN TEXTURE OVERLAY
+   (applied via ::before on body)
+   ───────────────────────────────────────── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  mix-blend-mode: multiply;
 }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, oklch(0.75 0.18 285), oklch(0.72 0.2 260), oklch(0.78 0.22 300));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* ─────────────────────────────────────────
+   TYPOGRAPHY
+   ───────────────────────────────────────── */
+.font-display {
+  font-family: "DM Serif Display", Georgia, serif;
+}
+.font-brutalist {
+  font-family: "Bebas Neue", "Impact", sans-serif;
+  letter-spacing: 0.04em;
+}
+.font-mono {
+  font-family: "JetBrains Mono", "Courier New", monospace;
 }
 
-/* Primary gradient button */
-.btn-primary {
-  background: linear-gradient(135deg, oklch(0.62 0.24 280), oklch(0.65 0.22 260));
-  color: white;
-  font-weight: 600;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.625rem;
-  border: none;
+/* ─────────────────────────────────────────
+   STAMPED / EMBOSSED COMPONENTS
+   ───────────────────────────────────────── */
+
+/* Primary stamped button — looks physically pressed into existence */
+.btn-stamp {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  color: var(--cream);
+  background: var(--rust);
+  border: 3px solid var(--ink);
+  padding: 0.6rem 1.5rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px oklch(0.62 0.24 280 / 30%);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  /* Hard shadow = depth */
+  box-shadow: 4px 4px 0 var(--ink);
+  user-select: none;
 }
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px oklch(0.62 0.24 280 / 40%);
-  filter: brightness(1.1);
+.btn-stamp:hover:not(:disabled) {
+  box-shadow: 6px 6px 0 var(--ink);
+  transform: translate(-1px, -1px);
 }
-.btn-primary:disabled {
-  opacity: 0.5;
+.btn-stamp:active:not(:disabled) {
+  box-shadow: 1px 1px 0 var(--ink);
+  transform: translate(3px, 3px);
+}
+.btn-stamp:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-/* Ghost button */
-.btn-ghost {
-  background: oklch(0.2 0.04 255 / 60%);
-  color: oklch(0.8 0.01 255);
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid oklch(0.3 0.05 255 / 40%);
+/* Secondary / ghost stamp button */
+.btn-stamp-ghost {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  padding: 0.5rem 1.2rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  box-shadow: 3px 3px 0 var(--ink);
 }
-.btn-ghost:hover {
-  background: oklch(0.25 0.05 255 / 80%);
-  border-color: oklch(0.4 0.08 275 / 60%);
+.btn-stamp-ghost:hover:not(:disabled) {
+  box-shadow: 5px 5px 0 var(--ink);
+  transform: translate(-1px, -1px);
+  background: var(--paper-dark);
+}
+.btn-stamp-ghost:active:not(:disabled) {
+  box-shadow: 0px 0px 0 var(--ink);
+  transform: translate(3px, 3px);
+}
+.btn-stamp-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-/* Sidebar nav link */
+/* Gold accent stamp */
+.btn-stamp-gold {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  background: var(--gold);
+  border: 2.5px solid var(--ink);
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.btn-stamp-gold:hover {
+  box-shadow: 5px 5px 0 var(--ink);
+  transform: translate(-1px, -1px);
+}
+.btn-stamp-gold:active {
+  box-shadow: 0 0 0 var(--ink);
+  transform: translate(3px, 3px);
+}
+
+/* ─────────────────────────────────────────
+   CARDS — raised off the page with hard drop shadows
+   ───────────────────────────────────────── */
+.sc-card {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  padding: 1.25rem;
+  box-shadow: 5px 5px 0 var(--ink);
+  position: relative;
+}
+
+.sc-card-heavy {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  padding: 1.5rem;
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+/* Ink-stained header variant */
+.sc-card-header {
+  background: var(--ink);
+  color: var(--cream);
+  border: 3px solid var(--ink);
+  padding: 0.75rem 1.25rem;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 1.1rem;
+}
+
+/* ─────────────────────────────────────────
+   INPUTS — inset/recessed look
+   ───────────────────────────────────────── */
+.sc-input {
+  width: 100%;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  padding: 0.6rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--ink);
+  outline: none;
+  font-family: "Space Grotesk", sans-serif;
+  transition: box-shadow 0.15s;
+  /* Inset shadow = looks pressed into the surface */
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.12);
+}
+.sc-input:focus {
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.15), 0 0 0 3px var(--rust);
+  outline: none;
+}
+.sc-input::placeholder {
+  color: #9a9080;
+  font-style: italic;
+}
+
+/* Textarea */
+textarea.sc-input {
+  resize: vertical;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.8rem;
+}
+
+/* Select */
+select.sc-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230e0d0b' stroke-width='2' fill='none' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 2rem;
+}
+
+/* ─────────────────────────────────────────
+   LABEL
+   ───────────────────────────────────────── */
+.sc-label {
+  display: block;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  margin-bottom: 0.35rem;
+  border-left: 3px solid var(--rust);
+  padding-left: 0.5rem;
+}
+
+/* ─────────────────────────────────────────
+   SIDEBAR
+   ───────────────────────────────────────── */
+.sidebar-bg {
+  background: var(--ink);
+  /* Subtle crosshatch to mimic raw material */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 24px,
+      rgba(255,255,255,0.02) 24px,
+      rgba(255,255,255,0.02) 25px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 24px,
+      rgba(255,255,255,0.015) 24px,
+      rgba(255,255,255,0.015) 25px
+    );
+}
+
+/* Nav link */
 .nav-link {
   display: flex;
   align-items: center;
   gap: 0.625rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: oklch(0.65 0.02 255);
-  transition: all 0.18s ease;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  color: #a09888;
   text-decoration: none;
+  border: 2px solid transparent;
+  transition: all 0.1s ease;
+  position: relative;
 }
 .nav-link:hover {
-  background: oklch(0.2 0.04 255);
-  color: oklch(0.92 0.005 255);
+  color: var(--cream);
+  border-color: #3a3530;
+  background: #1a1814;
 }
 .nav-link.active {
-  background: linear-gradient(135deg, oklch(0.62 0.24 280 / 20%), oklch(0.65 0.22 260 / 15%));
-  color: oklch(0.82 0.14 280);
-  border: 1px solid oklch(0.62 0.24 280 / 25%);
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  background: #1e1c18;
+  box-shadow: 3px 3px 0 var(--gold-dark);
 }
 
-/* Input styling */
-.sc-input {
-  width: 100%;
-  background: oklch(0.13 0.025 255);
-  border: 1px solid oklch(0.28 0.04 255 / 60%);
-  border-radius: 0.5rem;
-  padding: 0.625rem 0.875rem;
-  font-size: 0.875rem;
-  color: oklch(0.92 0.005 255);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: inherit;
-}
-.sc-input:focus {
-  border-color: oklch(0.68 0.22 275 / 80%);
-  box-shadow: 0 0 0 3px oklch(0.68 0.22 275 / 12%);
-}
-.sc-input::placeholder {
-  color: oklch(0.45 0.02 255);
-}
-
-/* Label */
-.sc-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: oklch(0.55 0.02 255);
-  margin-bottom: 0.375rem;
-}
-
-/* Section card */
-.sc-card {
-  background: oklch(0.14 0.03 255);
-  border: 1px solid oklch(0.25 0.04 255 / 50%);
-  border-radius: 1rem;
-  padding: 1.25rem;
-}
-
-/* Badge */
+/* ─────────────────────────────────────────
+   BADGES
+   ───────────────────────────────────────── */
 .badge-admin {
-  background: oklch(0.35 0.12 25 / 25%);
-  border: 1px solid oklch(0.55 0.18 25 / 40%);
-  color: oklch(0.75 0.15 25);
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  background: var(--rust);
+  border: 2px solid var(--ink);
+  color: var(--cream);
+  padding: 0.1rem 0.5rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  box-shadow: 2px 2px 0 var(--ink);
 }
 .badge-volunteer {
-  background: oklch(0.3 0.1 160 / 25%);
-  border: 1px solid oklch(0.5 0.14 160 / 40%);
-  color: oklch(0.7 0.14 160);
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  background: var(--amber);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  padding: 0.1rem 0.5rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  box-shadow: 2px 2px 0 var(--ink);
 }
 .badge-success {
-  background: oklch(0.3 0.1 160 / 20%);
-  color: oklch(0.7 0.14 160);
-  border: 1px solid oklch(0.5 0.14 160 / 30%);
-  padding: 0.15rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.7rem;
-  font-weight: 600;
+  background: var(--green);
+  border: 2px solid var(--ink);
+  color: var(--cream);
+  padding: 0.1rem 0.5rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  box-shadow: 2px 2px 0 var(--ink);
+  display: inline-block;
 }
 .badge-error {
-  background: oklch(0.3 0.1 25 / 20%);
-  color: oklch(0.72 0.18 25);
-  border: 1px solid oklch(0.5 0.16 25 / 30%);
-  padding: 0.15rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.7rem;
-  font-weight: 600;
+  background: var(--rust);
+  border: 2px solid var(--ink);
+  color: var(--cream);
+  padding: 0.1rem 0.5rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  box-shadow: 2px 2px 0 var(--ink);
+  display: inline-block;
+}
+.badge-neutral {
+  background: var(--concrete);
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  padding: 0.1rem 0.5rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  box-shadow: 2px 2px 0 var(--ink);
+  display: inline-block;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: oklch(0.3 0.04 255); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: oklch(0.4 0.06 275); }
-
-/* Stat card glow variants */
-.stat-glow-purple { box-shadow: 0 0 30px oklch(0.68 0.22 275 / 10%); }
-.stat-glow-blue { box-shadow: 0 0 30px oklch(0.65 0.18 240 / 10%); }
-.stat-glow-emerald { box-shadow: 0 0 30px oklch(0.65 0.16 160 / 10%); }
-.stat-glow-amber { box-shadow: 0 0 30px oklch(0.78 0.18 80 / 10%); }
-
-/* Animated gradient border */
-@keyframes border-glow {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+/* ─────────────────────────────────────────
+   TEMPLATE CARD — selected
+   ───────────────────────────────────────── */
+.template-card {
+  background: var(--paper);
+  border: 2.5px solid var(--ink);
+  padding: 0.875rem;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  text-align: left;
+  width: 100%;
+}
+.template-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+.template-card.active {
+  background: var(--ink);
+  color: var(--cream);
+  box-shadow: 5px 5px 0 var(--rust);
+  border-color: var(--rust);
+  transform: translate(-1px, -1px);
 }
 
-/* Template card selected state */
-.template-card-active {
-  background: linear-gradient(135deg, oklch(0.62 0.24 280 / 12%), oklch(0.65 0.22 260 / 8%));
-  border-color: oklch(0.68 0.22 275 / 60%);
-  box-shadow: 0 0 0 1px oklch(0.68 0.22 275 / 20%), 0 4px 20px oklch(0.62 0.24 280 / 15%);
+/* ─────────────────────────────────────────
+   SECTION DIVIDERS — maximalist rule lines
+   ───────────────────────────────────────── */
+.rule-heavy {
+  border: none;
+  border-top: 3px solid var(--ink);
+  margin: 1.25rem 0;
+}
+.rule-double {
+  border: none;
+  border-top: 3px double var(--ink);
+  margin: 1rem 0;
 }
 
-/* Markdown editor override */
+/* ─────────────────────────────────────────
+   TABLE — newspaper style
+   ───────────────────────────────────────── */
+.sc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.sc-table thead tr {
+  background: var(--ink);
+  color: var(--cream);
+}
+.sc-table thead th {
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  font-weight: 400;
+}
+.sc-table tbody tr {
+  border-bottom: 2px solid var(--ink);
+  transition: background 0.1s;
+}
+.sc-table tbody tr:hover {
+  background: var(--paper-dark);
+}
+.sc-table tbody td {
+  padding: 0.65rem 1rem;
+  vertical-align: middle;
+}
+
+/* ─────────────────────────────────────────
+   MARKDOWN EDITOR OVERRIDE
+   ───────────────────────────────────────── */
 .w-md-editor {
-  background: oklch(0.13 0.025 255) !important;
-  border: 1px solid oklch(0.28 0.04 255 / 60%) !important;
-  border-radius: 0.5rem !important;
-  color: oklch(0.9 0.005 255) !important;
-  box-shadow: none !important;
+  background: var(--cream) !important;
+  border: 2px solid var(--ink) !important;
+  border-radius: 0 !important;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.1) !important;
+  color: var(--ink) !important;
+  font-family: "JetBrains Mono", monospace !important;
 }
 .w-md-editor-toolbar {
-  background: oklch(0.16 0.03 255) !important;
-  border-bottom: 1px solid oklch(0.25 0.04 255 / 50%) !important;
+  background: var(--paper-dark) !important;
+  border-bottom: 2px solid var(--ink) !important;
+  border-radius: 0 !important;
 }
 .w-md-editor-toolbar li button {
-  color: oklch(0.65 0.02 255) !important;
+  color: var(--ink) !important;
 }
 .w-md-editor-toolbar li button:hover {
-  color: oklch(0.9 0.005 255) !important;
-  background: oklch(0.22 0.04 255) !important;
+  background: var(--concrete) !important;
+  color: var(--ink) !important;
 }
 .w-md-editor-text-input,
 .w-md-editor-text {
-  color: oklch(0.9 0.005 255) !important;
+  color: var(--ink) !important;
+  font-family: "JetBrains Mono", monospace !important;
 }
+
+/* ─────────────────────────────────────────
+   SCROLLBAR — brutalist
+   ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--paper-dark); border-left: 2px solid var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--ink); border: 2px solid var(--paper-dark); }
+::-webkit-scrollbar-thumb:hover { background: var(--rust); }
+
+/* ─────────────────────────────────────────
+   ANIMATION
+   ───────────────────────────────────────── */
+@keyframes stamp-in {
+  0%   { transform: scale(1.04) rotate(-0.5deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.stamp-in {
+  animation: stamp-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Loading spin */
+@keyframes spin { to { transform: rotate(360deg); } }
+.animate-spin { animation: spin 1s linear infinite; }
