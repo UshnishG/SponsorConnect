@@ -96,7 +96,8 @@ export const sendOutreachEmail = createServerFn({ method: "POST" })
       });
 
 
-      const messageIdBare = `${crypto.randomUUID()}@outreachieee.lovable.app`;
+      const appDomain = process.env.VERCEL_URL || process.env.APP_URL?.replace(/^https?:\/\//, '') || "localhost";
+      const messageIdBare = `${crypto.randomUUID()}@${appDomain}`;
       const messageIdHeader = `<${messageIdBare}>`;
 
       // Insert as QUEUED first so we always have a row even on total transport failure

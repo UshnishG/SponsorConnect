@@ -180,7 +180,8 @@ async function createCloudflareSmtpMailer(user: string, password: string): Promi
 
       try {
         await expect([220]);
-        await command("EHLO outreachieee.lovable.app", [250]);
+        const domain = process.env.VERCEL_URL || process.env.APP_URL?.replace(/^https?:\/\//, '') || "localhost";
+        await command(`EHLO ${domain}`, [250]);
         await command(`AUTH PLAIN ${toBase64Utf8(`\0${user}\0${password}`)}`, [235]);
         await command(`MAIL FROM:<${getEmailAddress(opts.from)}>`, [250]);
         for (const recipient of [...normalizeRecipients(opts.to), ...normalizeRecipients(opts.cc)]) {
@@ -297,7 +298,8 @@ async function createNodeSmtpMailer(user: string, password: string): Promise<Mai
           void (async () => {
             try {
               await expect([220]);
-              await command("EHLO outreachieee.lovable.app", [250]);
+              const domain = process.env.VERCEL_URL || process.env.APP_URL?.replace(/^https?:\/\//, '') || "localhost";
+              await command(`EHLO ${domain}`, [250]);
               await command(`AUTH PLAIN ${toBase64Utf8(`\0${user}\0${password}`)}`, [235]);
               await command(`MAIL FROM:<${getEmailAddress(opts.from)}>`, [250]);
               for (const recipient of [...normalizeRecipients(opts.to), ...normalizeRecipients(opts.cc)]) {

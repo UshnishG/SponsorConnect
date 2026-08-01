@@ -198,7 +198,7 @@ export const Route = createFileRoute("/api/public/hooks/bounce-monitor")({
                         <tbody>${rows}</tbody>
                       </table>
                       <p style="margin:20px 0 0;color:#555;font-size:13px;">
-                        View full details in your <a href="https://outreachieee.lovable.app/emails" style="color:#2563eb;">Email log</a>.
+                        View full details in your <a href="${process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:8080")}/emails" style="color:#2563eb;">Email log</a>.
                       </p>
                       <p style="margin:24px 0 0;color:#94a3b8;font-size:12px;">— IEEE Computer Society Outreach, AICSSYC</p>
                     </div>`;
@@ -208,7 +208,7 @@ export const Route = createFileRoute("/api/public/hooks/bounce-monitor")({
                     to: prof.email,
                     subject: `${bounces.length} email${bounces.length === 1 ? "" : "s"} bounced — please update recipient${bounces.length === 1 ? "" : "s"}`,
                     html,
-                    messageId: `<bounce-notify-${crypto.randomUUID()}@outreachieee.lovable.app>`,
+                    messageId: `<bounce-notify-${crypto.randomUUID()}@${process.env.VERCEL_URL || process.env.APP_URL?.replace(/^https?:\/\//, '') || "localhost"}>`,
                   });
                   notifications.push({ user_id: uid, to: prof.email, sent: true, count: bounces.length });
                 } catch (e: any) {

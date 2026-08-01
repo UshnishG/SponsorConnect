@@ -3,7 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const GMAIL_SCOPE = "openid email profile https://www.googleapis.com/auth/gmail.send";
-const DEFAULT_APP_ORIGIN = "https://sponsor-spark-75.lovable.app";
+const DEFAULT_APP_ORIGIN = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:8080");
 
 function getRedirectUri(): string {
   const base = process.env.PUBLIC_APP_URL || process.env.APP_URL || DEFAULT_APP_ORIGIN;

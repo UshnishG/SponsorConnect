@@ -1,7 +1,7 @@
 import { marked } from "marked";
 import srmLogoAsset from "@/assets/srm-logo.png.asset.json";
 
-const BASE_URL = "https://project--cef9e6b1-a811-4309-a193-897e6560c296.lovable.app";
+const BASE_URL = process.env.APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:8080");
 const AICSSYC_LOGO = `${BASE_URL}/__l5e/assets-v1/9a130604-9ee4-4773-893a-f387e16da8fa/aicssyc-logo.png`;
 const IEEE_CS_LOGO = `${BASE_URL}/__l5e/assets-v1/bc5fc91c-5700-4a7a-aced-4c00be793bc4/ieee-cs-logo.jpeg`;
 const FOOTER_IMAGE = `${BASE_URL}/__l5e/assets-v1/996f6ae7-67d5-454a-bbe7-b88f6e1dda40/ieee-cs-footer.png`;

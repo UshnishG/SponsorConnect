@@ -352,7 +352,7 @@ export const Route = createFileRoute("/api/public/hooks/daily-email-report")({
                 to,
                 subject: `AICSSYC Daily Report — ${dayLabel} (${sent}/${total} delivered)`,
                 html,
-                messageId: `<report-${dayLabel}-${crypto.randomUUID()}@outreachieee.lovable.app>`,
+                messageId: `<report-${dayLabel}-${crypto.randomUUID()}@${process.env.VERCEL_URL || process.env.APP_URL?.replace(/^https?:\/\//, '') || "localhost"}>`,
                 attachments: [
                   {
                     filename: `aicssyc-outreach-${dayLabel}.csv`,

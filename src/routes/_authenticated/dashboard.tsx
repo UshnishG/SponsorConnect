@@ -22,24 +22,54 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
   head: () => ({
     meta: [
-      { title: "Dashboard — AICSSYC Outreach" },
+      { title: "Dashboard — SponsorConnect" },
       { name: "robots", content: "noindex" },
     ],
   }),
 });
 
-function Stat({ label, value, tone = "slate" }: { label: string; value: number | string; tone?: string }) {
-  const toneCls: Record<string, string> = {
-    slate: "text-slate-900",
-    emerald: "text-emerald-600",
-    rose: "text-rose-600",
-    amber: "text-amber-600",
-    blue: "text-blue-600",
-  };
+const CHART_TOOLTIP_STYLE = {
+  contentStyle: {
+    background: "oklch(0.16 0.03 255)",
+    border: "1px solid oklch(0.28 0.05 255 / 60%)",
+    borderRadius: "10px",
+    color: "oklch(0.88 0.005 255)",
+    fontSize: "12px",
+  },
+  cursor: { fill: "oklch(0.68 0.22 275 / 8%)" },
+};
+
+function StatCard({
+  label,
+  value,
+  icon,
+  accent,
+  glowClass,
+}: {
+  label: string;
+  value: number | string;
+  icon: React.ReactNode;
+  accent: string;
+  glowClass: string;
+}) {
   return (
-    <div className="rounded-xl border bg-white p-4 shadow-sm">
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</div>
-      <div className={`mt-1 text-2xl font-bold ${toneCls[tone] ?? toneCls.slate}`}>{value}</div>
+    <div
+      className={`sc-card flex items-start gap-4 ${glowClass} transition-transform hover:-translate-y-0.5`}
+    >
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: `${accent}20`, border: `1px solid ${accent}40`, color: accent }}
+      >
+        {icon}
+      </div>
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wider mb-0.5" style={{ color: "oklch(0.45 0.02 255)" }}>
+          {label}
+        </div>
+        <div className="text-2xl font-bold" style={{ color: "oklch(0.92 0.005 255)" }}>
+          {value}
+        </div>
+      </div>
     </div>
   );
 }
@@ -49,7 +79,6 @@ function DashboardPage() {
   const listFn = useServerFn(listMyEmails);
   const statsFn = useServerFn(getMyEmailStats);
 
-  // Server-side date range filter (limits the query)
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
 
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
@@ -60,8 +89,6 @@ function DashboardPage() {
   });
 
   const isAdmin = me?.role === "admin";
-
-  // Client-side filters
   const [search, setSearch] = useState("");
   const [templateFilter, setTemplateFilter] = useState("");
   const [recipientFilter, setRecipientFilter] = useState("");
@@ -96,7 +123,6 @@ function DashboardPage() {
     });
   }, [emails, search, templateFilter, sentByFilter, recipientFilter]);
 
-  // ---------- Charts (admin only) ----------
   const templateChart = useMemo(() => {
     const map = new Map<string, number>();
     for (const e of visibleEmails) {
@@ -105,7 +131,6 @@ function DashboardPage() {
     }
     return Array.from(map, ([template, count]) => ({ template, count })).sort((a, b) => b.count - a.count);
   }, [visibleEmails]);
-
 
   const dateChart = useMemo(() => {
     const map = new Map<string, number>();
@@ -147,214 +172,248 @@ function DashboardPage() {
     URL.revokeObjectURL(url);
   };
 
+  const hasFilters = dateRange.from || dateRange.to || search || templateFilter || recipientFilter || sentByFilter;
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: "oklch(0.1 0.025 255)" }}>
       <AppHeader me={me ?? null} />
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <div className="mb-6 flex items-start justify-between gap-4">
+
+      <div className="lg:pl-[220px] pt-14 lg:pt-0">
+        {/* Top bar */}
+        <div className="px-6 py-4 flex items-center justify-between"
+          style={{ borderBottom: "1px solid oklch(0.22 0.04 255)" }}>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Email dashboard</h1>
-            <p className="text-sm text-slate-500">
-              {isAdmin ? "All delivered outreach across the team." : "Your delivered outreach."}
+            <h1 className="font-bold text-lg" style={{ color: "oklch(0.92 0.005 255)" }}>Dashboard</h1>
+            <p className="text-xs mt-0.5" style={{ color: "oklch(0.45 0.02 255)" }}>
+              {isAdmin ? "All outreach activity across the team." : "Your personal outreach activity."}
             </p>
           </div>
           <button
             type="button"
             onClick={downloadCsv}
             disabled={visibleEmails.length === 0}
-            className="shrink-0 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-ghost text-xs flex items-center gap-2"
           >
-            Download CSV
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export CSV
           </button>
         </div>
 
-        {stats && (
-          <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Stat label="Total delivered" value={stats.total} tone="emerald" />
-            <Stat label="Today" value={stats.today} tone="blue" />
-            <Stat label="This month" value={stats.thisMonth} />
-            <Stat label="Unique templates" value={templateOptions.length} tone="amber" />
-          </div>
-        )}
-
-        {isAdmin && (
-          <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <ChartCard title="Sends by template">
-              {templateChart.length === 0 ? (
-                <EmptyChart />
-              ) : (
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={templateChart}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="template" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </ChartCard>
-
-            <ChartCard title="Sends over time">
-              {dateChart.length === 0 ? (
-                <EmptyChart />
-              ) : (
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={dateChart}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </ChartCard>
-
-          </div>
-        )}
-
-        <div className="mb-4 grid grid-cols-1 gap-2 rounded-xl border bg-white p-3 shadow-sm md:grid-cols-3 lg:grid-cols-6">
-          <input
-            placeholder="Search subject, recipient…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="rounded-md border border-slate-200 px-2 py-1.5 text-sm md:col-span-2"
-          />
-          <select
-            value={templateFilter}
-            onChange={(e) => setTemplateFilter(e.target.value)}
-            className="rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-          >
-            <option value="">All templates</option>
-            {templateOptions.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-          <input
-            placeholder="Recipient contains…"
-            value={recipientFilter}
-            onChange={(e) => setRecipientFilter(e.target.value)}
-            className="rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-          />
-          {isAdmin && (
-            <select
-              value={sentByFilter}
-              onChange={(e) => setSentByFilter(e.target.value)}
-              className="rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-            >
-              <option value="">All senders</option>
-              {sentByOptions.map(([id, label]) => (
-                <option key={id} value={id}>{label}</option>
-              ))}
-            </select>
+        <div className="px-6 py-6 space-y-6 overflow-auto" style={{ maxHeight: "calc(100vh - 57px)" }}>
+          {/* Stat cards */}
+          {stats && (
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <StatCard
+                label="Total delivered"
+                value={stats.total}
+                glowClass="stat-glow-emerald"
+                accent="oklch(0.65 0.16 160)"
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>}
+              />
+              <StatCard
+                label="Today"
+                value={stats.today}
+                glowClass="stat-glow-blue"
+                accent="oklch(0.65 0.18 240)"
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+              />
+              <StatCard
+                label="This month"
+                value={stats.thisMonth}
+                glowClass="stat-glow-purple"
+                accent="oklch(0.68 0.22 275)"
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+              />
+              <StatCard
+                label="Templates used"
+                value={templateOptions.length}
+                glowClass="stat-glow-amber"
+                accent="oklch(0.78 0.18 80)"
+                icon={<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
+              />
+            </div>
           )}
-          <div className="flex gap-2 md:col-span-3 lg:col-span-6">
-            <label className="flex items-center gap-2 text-xs text-slate-500">
-              From
+
+          {/* Charts (admin) */}
+          {isAdmin && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="sc-card">
+                <div className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "oklch(0.45 0.02 255)" }}>
+                  Sends by template
+                </div>
+                {templateChart.length === 0 ? (
+                  <div className="flex h-44 items-center justify-center text-sm" style={{ color: "oklch(0.35 0.02 255)" }}>
+                    No data yet
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={templateChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.22 0.04 255)" />
+                      <XAxis dataKey="template" tick={{ fontSize: 11, fill: "oklch(0.5 0.02 255)" }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "oklch(0.5 0.02 255)" }} />
+                      <Tooltip {...CHART_TOOLTIP_STYLE} />
+                      <Bar dataKey="count" fill="oklch(0.68 0.22 275)" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+
+              <div className="sc-card">
+                <div className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "oklch(0.45 0.02 255)" }}>
+                  Sends over time
+                </div>
+                {dateChart.length === 0 ? (
+                  <div className="flex h-44 items-center justify-center text-sm" style={{ color: "oklch(0.35 0.02 255)" }}>
+                    No data yet
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={dateChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.22 0.04 255)" />
+                      <XAxis dataKey="date" tick={{ fontSize: 11, fill: "oklch(0.5 0.02 255)" }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "oklch(0.5 0.02 255)" }} />
+                      <Tooltip {...CHART_TOOLTIP_STYLE} />
+                      <Line type="monotone" dataKey="count" stroke="oklch(0.65 0.18 240)" strokeWidth={2.5} dot={{ r: 4, fill: "oklch(0.65 0.18 240)" }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Filters */}
+          <div className="sc-card">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4">
               <input
-                type="date"
-                value={dateRange.from}
-                onChange={(e) => setDateRange((r) => ({ ...r, from: e.target.value }))}
-                className="rounded-md border border-slate-200 px-2 py-1.5 text-sm"
+                placeholder="Search subject, recipient…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="sc-input md:col-span-2"
               />
-            </label>
-            <label className="flex items-center gap-2 text-xs text-slate-500">
-              To
-              <input
-                type="date"
-                value={dateRange.to}
-                onChange={(e) => setDateRange((r) => ({ ...r, to: e.target.value }))}
-                className="rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-              />
-            </label>
-            {(dateRange.from || dateRange.to || search || templateFilter || recipientFilter || sentByFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setDateRange({ from: "", to: "" });
-                  setSearch("");
-                  setTemplateFilter("");
-                  setRecipientFilter("");
-                  setSentByFilter("");
-                }}
-                className="ml-auto text-xs text-slate-500 hover:text-slate-800"
+              <select
+                value={templateFilter}
+                onChange={(e) => setTemplateFilter(e.target.value)}
+                className="sc-input"
               >
-                Reset filters
-              </button>
+                <option value="">All templates</option>
+                {templateOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <input
+                placeholder="Filter by recipient…"
+                value={recipientFilter}
+                onChange={(e) => setRecipientFilter(e.target.value)}
+                className="sc-input"
+              />
+              {isAdmin && (
+                <select
+                  value={sentByFilter}
+                  onChange={(e) => setSentByFilter(e.target.value)}
+                  className="sc-input"
+                >
+                  <option value="">All senders</option>
+                  {sentByOptions.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+                </select>
+              )}
+              <label className="flex items-center gap-2 text-xs" style={{ color: "oklch(0.5 0.02 255)" }}>
+                From
+                <input type="date" value={dateRange.from}
+                  onChange={(e) => setDateRange((r) => ({ ...r, from: e.target.value }))}
+                  className="sc-input flex-1" />
+              </label>
+              <label className="flex items-center gap-2 text-xs" style={{ color: "oklch(0.5 0.02 255)" }}>
+                To
+                <input type="date" value={dateRange.to}
+                  onChange={(e) => setDateRange((r) => ({ ...r, to: e.target.value }))}
+                  className="sc-input flex-1" />
+              </label>
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={() => { setDateRange({ from: "", to: "" }); setSearch(""); setTemplateFilter(""); setRecipientFilter(""); setSentByFilter(""); }}
+                  className="text-xs transition-colors"
+                  style={{ color: "oklch(0.55 0.15 25)" }}
+                >
+                  ✕ Reset filters
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="sc-card overflow-hidden !p-0">
+            {isLoading && (
+              <div className="p-6 text-sm text-center" style={{ color: "oklch(0.45 0.02 255)" }}>Loading…</div>
+            )}
+            {!isLoading && visibleEmails.length === 0 && (
+              <div className="p-10 text-center">
+                <div className="text-2xl mb-2">📭</div>
+                <div className="text-sm" style={{ color: "oklch(0.45 0.02 255)" }}>No emails match these filters.</div>
+              </div>
+            )}
+            {visibleEmails.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid oklch(0.22 0.04 255)" }}>
+                      {["When", "Status", "Template", "Recipient", "Sent By", ""].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider"
+                          style={{ color: "oklch(0.4 0.02 255)", background: "oklch(0.13 0.025 255)" }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleEmails.map((e, i) => (
+                      <tr
+                        key={e.id}
+                        style={{
+                          borderBottom: i < visibleEmails.length - 1 ? "1px solid oklch(0.19 0.035 255)" : "none",
+                        }}
+                        onMouseEnter={(el) => (el.currentTarget.style.background = "oklch(0.15 0.03 255)")}
+                        onMouseLeave={(el) => (el.currentTarget.style.background = "transparent")}
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-xs" style={{ color: "oklch(0.45 0.02 255)" }}>
+                          {new Date(e.created_at).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={e.status === "delivered" || e.status === "sent" ? "badge-success" : "badge-error"}>
+                            {humanStatusLabel(e.status)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 capitalize text-xs" style={{ color: "oklch(0.65 0.02 255)" }}>
+                          {e.template_type ?? "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-xs font-medium" style={{ color: "oklch(0.8 0.01 255)" }}>
+                            {e.recipient_name || "—"}
+                          </div>
+                          <div className="text-[11px]" style={{ color: "oklch(0.45 0.02 255)" }}>
+                            {e.recipient_email}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs" style={{ color: "oklch(0.55 0.02 255)" }}>
+                          {e.sent_by_name || e.sent_by_email || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Link to="/emails/$id" params={{ id: e.id }}
+                            className="text-xs font-semibold transition-colors"
+                            style={{ color: "oklch(0.68 0.22 275)" }}
+                          >
+                            View →
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
-
-        <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
-          {isLoading && <div className="p-6 text-sm text-slate-500">Loading…</div>}
-          {!isLoading && visibleEmails.length === 0 && (
-            <div className="p-6 text-sm text-slate-500">No emails match these filters.</div>
-          )}
-          {visibleEmails.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="px-4 py-2">When</th>
-                    <th className="px-4 py-2">Status</th>
-                    <th className="px-4 py-2">Template</th>
-                    <th className="px-4 py-2">Recipient Name</th>
-                    <th className="px-4 py-2">Recipient Email</th>
-                    <th className="px-4 py-2">Sent By</th>
-                    <th className="px-4 py-2">Link</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {visibleEmails.map((e) => (
-                    <tr key={e.id} className="hover:bg-slate-50">
-                      <td className="whitespace-nowrap px-4 py-2 text-xs text-slate-500">
-                        {new Date(e.created_at).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-2">
-                        <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                          {humanStatusLabel(e.status)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2 capitalize text-slate-700">{e.template_type ?? "—"}</td>
-                      <td className="px-4 py-2 text-slate-700">{e.recipient_name || "—"}</td>
-                      <td className="px-4 py-2 text-slate-700">{e.recipient_email}</td>
-                      <td className="px-4 py-2 text-xs text-slate-600">
-                        {e.sent_by_name || e.sent_by_email || "—"}
-                        {e.sent_by_name && e.sent_by_email && (
-                          <div className="text-[10px] text-slate-400">{e.sent_by_email}</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        <Link
-                          to="/emails/$id"
-                          params={{ id: e.id }}
-                          className="text-xs font-medium text-blue-600 hover:underline"
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </main>
+      </div>
     </div>
   );
-}
-
-function ChartCard({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-xl border bg-white p-4 shadow-sm ${className}`}>
-      <div className="mb-3 text-sm font-semibold text-slate-700">{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function EmptyChart() {
-  return <div className="flex h-[240px] items-center justify-center text-sm text-slate-400">No data</div>;
 }
