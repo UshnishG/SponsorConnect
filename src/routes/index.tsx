@@ -1,10 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
 function LandingPage() {
+  // Supabase sends email-link redirects to the Site URL (this page) when the
+  // requested redirect isn't allow-listed. Nothing here reads the session, so
+  // hand the tokens/errors to /auth, which does.
+  useEffect(() => {
+    const { search, hash } = window.location;
+    if (/[?&](token_hash|error_description)=/.test(search) || /(access_token|error_description)=/.test(hash)) {
+      window.location.replace(`/auth${search}${hash}`);
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--cream)] text-[var(--ink)] flex flex-col font-mono selection:bg-[var(--gold)] selection:text-[var(--ink)]">
       {/* ── Navbar ── */}

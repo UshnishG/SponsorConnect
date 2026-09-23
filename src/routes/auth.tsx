@@ -1,6 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useRef } from "react";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { requestLoginEmail } from "@/lib/login.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -16,9 +19,31 @@ export const Route = createFileRoute("/auth")({
 });
 
 const ALLOWED_DOMAIN = "@srmist.edu.in";
+// Supabase's "Email OTP length" setting can be 6–10 digits.
+const MIN_CODE_LENGTH = 6;
+const MAX_CODE_LENGTH = 10;
+const LINK_OTP_TYPES: EmailOtpType[] = ["email", "magiclink", "signup"];
+
+function describeAuthError(err: unknown, fallback: string): string {
+  const { message: msg = "", code = "" } = (err ?? {}) as { message?: string; code?: string | null };
+  if (code === "invalid_credentials" || /invalid login credentials/i.test(msg))
+    return "Wrong email or password. No account on this site yet? Choose Sign Up, or sign in with an email code instead.";
+  if (code === "email_not_confirmed" || /email not confirmed/i.test(msg))
+    return "This email isn't confirmed yet. Sign in with an email code instead — that confirms it automatically.";
+  if (code === "user_already_exists" || /already registered/i.test(msg))
+    return "An account with this email already exists. Switch to Sign In.";
+  if (code === "over_email_send_rate_limit" || /rate limit/i.test(msg))
+    return "Too many sign-in emails requested. Please wait a few minutes and try again.";
+  if (code === "otp_expired" || /expired|invalid.*(otp|token)/i.test(msg))
+    return "That code or link is invalid or has expired. Request a new one.";
+  if (/not authorized/i.test(msg))
+    return "The sign-in email couldn't be sent to this address. Use password sign-in, or ask an admin to finish email setup.";
+  return msg || fallback;
+}
 
 function AuthPage() {
   const navigate = useNavigate();
+  const requestLoginEmailFn = useServerFn(requestLoginEmail);
   const [loading, setLoading] = useState(false);
   
   // High-level auth method
@@ -37,6 +62,39 @@ function AuthPage() {
 
   // Shared state
   const [email, setEmail] = useState("");
+
+  // Arriving from an emailed sign-in link: /auth?token_hash=…&type=email, or a
+  // Supabase redirect carrying #error_description=… (e.g. an expired link).
+  // Must run before the session effect below so a stripped error hash is never
+  // parsed; #access_token redirects are left for supabase-js to pick up.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const hash = new URLSearchParams(url.hash.slice(1));
+    const tokenHash = url.searchParams.get("token_hash");
+    const linkType = url.searchParams.get("type") as EmailOtpType | null;
+    const linkError = url.searchParams.get("error_description") || hash.get("error_description");
+    if (!tokenHash && !linkError) return;
+
+    // One-time values — drop them from the address bar and history.
+    window.history.replaceState(null, "", url.pathname);
+
+    if (linkError) {
+      const code = url.searchParams.get("error_code") || hash.get("error_code");
+      toast.error(describeAuthError({ message: linkError, code }, linkError));
+      return;
+    }
+
+    setLoading(true);
+    supabase.auth
+      .verifyOtp({
+        token_hash: tokenHash!,
+        type: linkType && LINK_OTP_TYPES.includes(linkType) ? linkType : "email",
+      })
+      .then(({ error }) => {
+        if (error) toast.error(describeAuthError(error, "Sign-in link is invalid or has expired"));
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -60,18 +118,23 @@ function AuthPage() {
     
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: emailLower,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      
-      if (error) throw error;
-      
+      // Sent through the app's own Gmail SMTP when the server is configured for it;
+      // otherwise fall back to Supabase's built-in mailer.
+      const res = await requestLoginEmailFn({ data: { email: emailLower } });
+      if (res.via === "supabase") {
+        const { error } = await supabase.auth.signInWithOtp({
+          email: emailLower,
+          // /auth (not /) is where the session in the redirect gets picked up.
+          options: { emailRedirectTo: `${window.location.origin}/auth` },
+        });
+        if (error) throw error;
+      }
+
       setStep("code");
-      toast.success("Login email sent!");
+      toast.success("Login email sent! Check your inbox (and spam folder).");
       setTimeout(() => codeInputRef.current?.focus(), 100);
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to send code");
+    } catch (err) {
+      toast.error(describeAuthError(err, "Failed to send code"));
     } finally {
       setLoading(false);
     }
@@ -82,8 +145,8 @@ function AuthPage() {
     const emailLower = email.trim().toLowerCase();
     const cleanCode = code.replace(/\s/g, "");
 
-    if (cleanCode.length !== 8) {
-      toast.error("Please enter the 8-digit code");
+    if (cleanCode.length < MIN_CODE_LENGTH || cleanCode.length > MAX_CODE_LENGTH) {
+      toast.error("Please enter the code from the email");
       return;
     }
 
@@ -96,8 +159,8 @@ function AuthPage() {
       });
 
       if (error) throw error;
-    } catch (err: any) {
-      toast.error(err?.message || "Invalid or expired code");
+    } catch (err) {
+      toast.error(describeAuthError(err, "Invalid or expired code"));
     } finally {
       setLoading(false);
     }
@@ -116,22 +179,31 @@ function AuthPage() {
     setLoading(true);
     try {
       if (passwordMode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: emailLower, password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth`,
             data: { full_name: name || emailLower.split("@")[0] },
           },
         });
         if (error) throw error;
-        toast.success("Check your email to confirm, then sign in.");
-        setPasswordMode("signin");
+        if (data.session) {
+          // Email confirmation is off — already signed in; onAuthStateChange redirects.
+          toast.success("Account created!");
+        } else if (data.user && data.user.identities?.length === 0) {
+          // Supabase hides "already registered" behind an empty identities list.
+          toast.error("An account with this email already exists. Switch to Sign In.");
+          setPasswordMode("signin");
+        } else {
+          toast.success("Check your email to confirm, then sign in.");
+          setPasswordMode("signin");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: emailLower, password });
         if (error) throw error;
       }
-    } catch (err: any) {
-      toast.error(err?.message || "Authentication failed");
+    } catch (err) {
+      toast.error(describeAuthError(err, "Authentication failed"));
     } finally {
       setLoading(false);
     }
@@ -246,19 +318,19 @@ function AuthPage() {
                       CHECK YOUR INBOX
                     </label>
                     <p className="font-mono text-xs text-center mb-4" style={{ color: "#6a6258" }}>
-                      Click the Magic Link in the email, or type the 8-digit code below:
+                      Click the sign-in link in the email sent to <strong>{email.trim().toLowerCase()}</strong>, or type the code below:
                     </p>
-                    <input 
+                    <input
                       ref={codeInputRef}
-                      type="text" required placeholder="00000000" 
-                      value={code} onChange={e => setCode(e.target.value.replace(/\D/g, "").slice(0, 8))} 
-                      className="sc-input font-mono" 
+                      type="text" inputMode="numeric" autoComplete="one-time-code" required placeholder="Code"
+                      value={code} onChange={e => setCode(e.target.value.replace(/\D/g, "").slice(0, MAX_CODE_LENGTH))}
+                      className="sc-input font-mono"
                       style={{ padding: "0.85rem", fontSize: "2rem", textAlign: "center", letterSpacing: "0.2em", fontWeight: "bold" }}
-                      maxLength={8}
+                      maxLength={MAX_CODE_LENGTH}
                     />
                   </div>
 
-                  <button type="submit" disabled={loading || code.length !== 8} className="btn-stamp w-full justify-center" style={{ fontSize: "1.1rem", padding: "0.85rem" }}>
+                  <button type="submit" disabled={loading || code.length < MIN_CODE_LENGTH} className="btn-stamp w-full justify-center" style={{ fontSize: "1.1rem", padding: "0.85rem" }}>
                     {loading ? "VERIFYING…" : "VERIFY CODE →"}
                   </button>
                   <button type="button" disabled={loading} onClick={() => { setStep("email"); setCode(""); }} className="btn-stamp-ghost" style={{ fontSize: "0.85rem", width: "100%", justifyContent: "center" }}>
